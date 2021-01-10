@@ -9,7 +9,8 @@ function data = xdf2fieldtrip(filename, varargin)
 %   data = xdf2fieldtrip(filename, ...)
 %
 % Optional arguments should come in key-value pairs and can include
-%   streamindx = list, indices of the streams to read (default is all)
+%   streamindx  = list, indices of the streams to read (default is all)
+%   sraterange  = range of sampling rate in Hz in data streams to read [lowerbound, upperbound] 
 %
 % You can also use the standard procedure with FT_DEFINETRIAL and FT_PREPROCESSING
 % for XDF files. This will return (only) the continuously sampled stream with the
@@ -43,6 +44,7 @@ function data = xdf2fieldtrip(filename, varargin)
 
 % process the options
 streamindx = ft_getopt(varargin, 'streamindx');
+sraterange = ft_getopt(varargin, 'sraterange');
 
 % ensure this is on the path
 ft_hastoolbox('xdf', 1);
@@ -73,8 +75,23 @@ else
   selected(streamindx) = true;
 end
 
+% select the streams to continue working with by srate
+if isempty(sraterange)
+  inrange = true(size(streams));
+else
+  inrange = false(size(streams));  
+  for i = 1:numel(streams)
+      if isfield(streams{i}.info, 'effective_srate')
+          if streams{i}.info.effective_srate >= sraterange(1) && streams{i}.info.effective_srate <= sraterange(2)
+              inrange(i) = true;
+          end
+      end
+  end
+end
+
+
 % discard the non-continuous streams
-streams = streams(iscontinuous & selected);
+streams = streams(iscontinuous & selected & inrange);
 
 if isempty(streams)
   ft_error('no continuous streams were selected');
