@@ -163,22 +163,41 @@ for i=1:numel(streams)
 end
 [~, indx] = max(srate);
 
+
+% copy the header from the stream with max srate
+keephdr         = data{indx}.hdr;
+keephdr.nChans  = 0; 
+keephdr.label   = {};
+keephdr.chantype = {};
+keephdr.chanunit = {}; 
+
 if numel(data)>1
-  % resample all data structures, except the one with the max sampling rate
-  % this will also align the time axes
-  for i=1:numel(data)
-    if i==indx
-      continue
+    % resample all data structures, except the one with the max sampling rate
+    % this will also align the time axes
+    for i=1:numel(data)   
+        
+        % append channel information to the header
+        keephdr.nChans      = keephdr.nChans + data{i}.hdr.nChans;
+        keephdr.label       = [keephdr.label;       data{i}.hdr.label];
+        keephdr.chantype    = [keephdr.chantype;    data{i}.hdr.chantype];
+        keephdr.chanunit    = [keephdr.chanunit;    data{i}.hdr.chanunit];
+                
+        if i==indx
+            continue
+        end
+
+        ft_notice('resampling %s', streams{i}.info.name);
+        cfg = [];
+        cfg.time = data{indx}.time;
+        data{i} = ft_resampledata(cfg, data{i});
+        
     end
     
-    ft_notice('resampling %s', streams{i}.info.name);
-    cfg = [];
-    cfg.time = data{indx}.time;
-    data{i} = ft_resampledata(cfg, data{i});
-  end
-  
-  % append all data structures
-  data = ft_appenddata([], data{:});
+    % append all data structures
+    data = ft_appenddata([], data{:});
+    
+    % modify some fields in the header
+    data.hdr = keephdr; 
 else
   % simply return the first and only one
   data = data{1};
