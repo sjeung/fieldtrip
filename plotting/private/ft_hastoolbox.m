@@ -53,11 +53,32 @@ function [status] = ft_hastoolbox(toolbox, autoadd, silent)
 % Note to developers: please do NOT use ft_warning and ft_error
 % inside this function, but rather the normal warning and error.
 
+% these are for speeding up subsequent calls with the same input arguments
+persistent previous_argin previous_argout
+
 if isdeployed
   % it is not possible to check the presence of functions or change the path in a compiled application
   status = true;
   return
 end
+
+if nargin<2
+  % default is not to add the path automatically
+  autoadd = 0;
+end
+
+if nargin<3
+  % default is not to be silent
+  silent = 0;
+end
+
+current_argin = {toolbox, autoadd, silent};
+if isequal(current_argin, previous_argin)
+  % return the previous output from cache
+  status = previous_argout{1};
+  return
+end
+
 
 % this points the user to the website where he/she can download the toolbox
 url = {
@@ -80,6 +101,7 @@ url = {
   'CCA'                                   'see http://www.imt.liu.se/~magnus/cca or contact Magnus Borga'
   'CELLFUNCTION'                          'see https://github.com/schoffelen/cellfunction'
   'CMOCEAN'                               'see https://nl.mathworks.com/matlabcentral/fileexchange/57773-matplotlib-perceptually-uniform-colormaps'
+  'COLORCET'                              'see https://www.peterkovesi.com/matlabfns/index.html#colour'
   'COMM'                                  'see http://www.mathworks.com/products/communications'
   'COMPILER'                              'see http://www.mathworks.com/products/compiler'
   'CONNECTIVITY'                          'see http://www.fieldtriptoolbox.org'
@@ -106,6 +128,7 @@ url = {
   'GIFTI'                                 'see http://www.artefact.tk/software/matlab/gifti'
   'GTEC'                                  'see http://www.gtec.at'
   'HOMER3'                                'see https://github.com/BUNPC/Homer3 and https://github.com/fNIRS/snirf_homer3'
+  'HEDTOOLS'                              'see https://hed-examples.readthedocs.io/en/latest/HedMatlabTools.html'
   'IBTB'                                  'see Magri et al. BMC Neurosci 2009, 10:81'
   'ICASSO'                                'see http://www.cis.hut.fi/projects/ica/icasso'
   'IMAGES'                                'see http://www.mathworks.com/products/image'  % Mathworks refers to this as IMAGES
@@ -140,6 +163,7 @@ url = {
   'NPMK'                                  'see https://github.com/BlackrockMicrosystems/NPMK'
   'NWAY'                                  'see http://www.models.kvl.dk/source/nwaytoolbox'
   'OPENMEEG'                              'see http://openmeeg.github.io and http://www.fieldtriptoolbox.org/faq/how_do_i_install_the_openmeeg_binaries'
+  'OPM'                                   'see https://github.com/tierneytim/OPM'
   'OPTIM'                                 'see http://www.mathworks.com/products/optim'
   'PEER'                                  'see http://www.fieldtriptoolbox.org'
   'PEER'                                  'see http://www.fieldtriptoolbox.org/development/peer'
@@ -177,16 +201,6 @@ url = {
   'YOKOGAWA'                              'this is deprecated, please use YOKOGAWA_MEG_READER instead'
   'YOKOGAWA_MEG_READER'                   'contact Ricoh engineers'
   };
-
-if nargin<2
-  % default is not to add the path automatically
-  autoadd = 0;
-end
-
-if nargin<3
-  % default is not to be silent
-  silent = 0;
-end
 
 % determine whether the toolbox is installed
 toolbox = upper(toolbox);
@@ -423,13 +437,19 @@ switch toolbox
     dependency = {'cividis', 'inferno', 'magma', 'plasma', 'tab10', 'tab20', 'tab20b', 'tab20c', 'twilight', 'viridis'};
   case 'CMOCEAN'
     dependency = {'cmocean'};
+  case 'COLORCET'
+    dependency = {'colorcet'};
   case 'FILEEXCHANGE'
     dependency = is_subdir_in_fieldtrip_path('/external/fileexchange');
   case 'HOMER3'
     dependency = {'SnirfClass' 'DataClass' 'AuxClass' 'MeasListClass' 'MetaDataTagsClass' 'ProbeClass' 'StimClass'};
+  case 'HEDTOOLS'
+    dependency = {'hed_assemble' 'getSessionInfo' 'getHostOptions'};
   case 'DUNEURO'
     dependency = {'duneuro_meeg', 'duneuro_function', 'compute_B_primary'};
-    
+  case 'OPM'
+    dependency = {'spm_opm_vslm'};
+
     % the following are FieldTrip modules or toolboxes
   case 'FILEIO'
     dependency = {'ft_read_header', 'ft_read_data', 'ft_read_event', 'ft_read_sens'};
@@ -470,13 +490,13 @@ end
 
 % try to determine the path of the requested toolbox and add it
 if ~status && autoadd>0
-  
+
   % for core FieldTrip modules
   prefix = fileparts(which('ft_defaults'));
   if ~status
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
-  
+
   % for external FieldTrip modules
   prefix = fullfile(fileparts(which('ft_defaults')), 'external');
   if ~status
@@ -488,7 +508,7 @@ if ~status && autoadd>0
       feval(licensefile);
     end
   end
-  
+
   % for contributed FieldTrip extensions
   prefix = fullfile(fileparts(which('ft_defaults')), 'contrib');
   if ~status
@@ -500,25 +520,25 @@ if ~status && autoadd>0
       feval(licensefile);
     end
   end
-  
+
   % for linux computers in the Donders Centre for Cognitive Neuroimaging
   prefix = '/home/common/matlab';
   if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
-  
+
   % for windows computers in the Donders Centre for Cognitive Neuroimaging
   prefix = 'h:\common\matlab';
   if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
-  
+
   % use the MATLAB subdirectory in your homedirectory, this works on linux and mac
   prefix = fullfile(getenv('HOME'), 'matlab');
   if ~status && is_folder(prefix)
     status = myaddpath(fullfile(prefix, lower(toolbox)), silent);
   end
-  
+
   if ~status
     % the toolbox is not on the path and cannot be added
     sel = find(strcmp(url(:,1), toolbox));
@@ -535,7 +555,7 @@ if ~status && autoadd>0
       % fail silently
     end
   end
-  
+
 elseif ~status && autoadd<0
   % the toolbox is not on the path and should not be added
   sel = find(strcmp(url(:,1), toolbox));
@@ -556,6 +576,13 @@ end
 % remember the previous path, allows us to determine on the next call
 % whether the path has been modified outise of this function
 % previouspath = path;
+
+
+% remember the current input and output arguments, so that they can be
+% reused on a subsequent call in case the same input argument is given
+current_argout = {status};
+previous_argin  = current_argin;
+previous_argout = current_argout;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % helper function

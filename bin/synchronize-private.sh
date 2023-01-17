@@ -584,6 +584,16 @@ ARRAY+=(private/fitsphere.m)
 sync ${ARRAY[*]}
 
 ################################################################################
+# fixcoordsys.m
+
+ARRAY=()
+ARRAY+=(fileio/private/fixcoordsys.m)
+ARRAY+=(forward/private/fixcoordsys.m)
+ARRAY+=(plotting/private/fixcoordsys.m)
+ARRAY+=(utilities/fixcoordsys.m)
+sync ${ARRAY[*]}
+
+################################################################################
 # fixdimord.m
 
 ARRAY=()
@@ -1478,6 +1488,7 @@ ARRAY=()
 ARRAY+=(test/private/isalmostequal.m)
 ARRAY+=(private/isalmostequal.m)
 ARRAY+=(preproc/private/isalmostequal.m)
+ARRAY+=(specest/private/isalmostequal.m)
 sync ${ARRAY[*]}
 
 ################################################################################
@@ -1560,6 +1571,14 @@ sync ${ARRAY[*]}
 ARRAY=()
 ARRAY+=(fileio/private/jaga16_packet.m)
 ARRAY+=(realtime/example/private/jaga16_packet.m)
+sync ${ARRAY[*]}
+
+################################################################################
+# kaiserbeta.m
+
+ARRAY=()
+ARRAY+=(preproc/private/kaiserbeta.m)
+ARRAY+=(specest/private/kaiserbeta.m)
 sync ${ARRAY[*]}
 
 ################################################################################
@@ -1937,9 +1956,9 @@ sync ${ARRAY[*]}
 # mesh_sphere.m
 
 ARRAY=()
-ARRAY+=(external/openmeeg/mesh_sphere.m)
 ARRAY+=(external/bemcp/mesh_sphere.m)
 ARRAY+=(external/dipoli/mesh_sphere.m)
+ARRAY+=(external/openmeeg/mesh_sphere.m)
 ARRAY+=(forward/private/mesh_sphere.m)
 ARRAY+=(plotting/private/mesh_sphere.m)
 ARRAY+=(private/mesh_sphere.m)
@@ -2713,6 +2732,14 @@ ARRAY+=(private/preproc.m)
 sync ${ARRAY[*]}
 
 ################################################################################
+# printor.m
+
+ARRAY=()
+ARRAY+=(utilities/private/printor.m)
+ARRAY+=(fileio/private/printor.m)
+sync ${ARRAY[*]}
+
+################################################################################
 # print_mem.m
 
 ARRAY=()
@@ -3038,7 +3065,10 @@ sync ${ARRAY[*]}
 # refine.m
 
 ARRAY=()
+ARRAY+=(external/bemcp/refine.m)
+ARRAY+=(external/dipoli/private/refine.m)
 ARRAY+=(external/openmeeg/private/refine.m)
+ARRAY+=(forward/private/refine.m)
 ARRAY+=(plotting/private/refine.m)
 ARRAY+=(fileio/private/refine.m)
 ARRAY+=(private/refine.m)

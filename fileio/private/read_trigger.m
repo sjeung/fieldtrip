@@ -42,7 +42,7 @@ endsample    = ft_getopt(varargin, 'endsample'          );
 chanindx     = ft_getopt(varargin, 'chanindx'           ); % specify -1 in case you don't want to detect triggers
 detectflank  = ft_getopt(varargin, 'detectflank'        ); % can be up, updiff, down, downdiff, both, any, biton, bitoff
 denoise      = ft_getopt(varargin, 'denoise',      true );
-trigshift    = ft_getopt(varargin, 'trigshift',    false); % causes the value of the trigger to be obtained from a sample that is shifted N samples away from the actual flank
+trigshift    = ft_getopt(varargin, 'trigshift',    0); % causes the value of the trigger to be obtained from a sample that is shifted N samples away from the actual flank
 trigpadding  = ft_getopt(varargin, 'trigpadding',  true );
 fixctf       = ft_getopt(varargin, 'fixctf',       false);
 fixneuromag  = ft_getopt(varargin, 'fixneuromag',  false);
@@ -157,7 +157,7 @@ end
 if strncmpi(dataformat, 'neuromag', 8) && ~fixneuromag
   for k = 1:size(dat,1)
     switch hdr.chantype{chanindx(1)}
-      case 'binary trigger'
+      case 'digital trigger'
         if any(dat(k,:)<0)
           dat(k,:) = double(typecast(int16(dat(k,:)), 'uint16'));
         end
@@ -242,12 +242,14 @@ if isempty(dat)
 end
 
 if isempty(detectflank)
-  % look at the first value in the trigger channel to determine whether the trigger is pulled up or down
-  % this fails if the first sample is zero and if the trigger values are negative
-  if all(dat(:,1)==0)
+  if all((dat(:,1)-mode(dat,2))>=0)
+    % the occasional TTL pulses are upward going
     detectflank = 'up';
-  else
+  elseif all((dat(:,1)-mode(dat,2))<=0)
+    % the occasional TTL pulses are downward going
     detectflank = 'down';
+  else
+    ft_error('cannot determine ''detectflank'' automatically, please specify this option in cfg.trialdef.detectflank');
   end
 end
 

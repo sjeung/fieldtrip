@@ -69,7 +69,6 @@ ft_defaults
 ft_preamble init
 ft_preamble debug
 ft_preamble provenance varargin
-ft_preamble trackconfig
 
 % the ft_abort variable is set to true or false in ft_preamble_init
 if ft_abort
@@ -99,7 +98,7 @@ if istrue(cfg.pertrial)
   % iterate over trials
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  tmpcfg  = keepfields(cfg, {'trials', 'showcallinfo', 'trackcallinfo', 'trackconfig', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
+  tmpcfg  = keepfields(cfg, {'trials', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo', 'checksize'});
   % select trials of interest
   for i=1:numel(varargin)
     varargin{i}        = ft_selectdata(tmpcfg, varargin{i});
@@ -128,7 +127,7 @@ else
   computeweights = ~isfield(cfg, 'pca');
 
   % select trials of interest
-  tmpcfg  = keepfields(cfg, {'trials', 'showcallinfo', 'trackcallinfo', 'trackconfig', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo'});
+  tmpcfg  = keepfields(cfg, {'trials', 'showcallinfo', 'trackcallinfo', 'trackusage', 'trackdatainfo', 'trackmeminfo', 'tracktimeinfo', 'checksize'});
   if length(varargin)==1
     % channel data and reference channel data are in 1 data structure
     megchan = ft_channelselection(cfg.channel,    varargin{1}.label);
@@ -182,9 +181,6 @@ else
   data.trial    = cellvecadd(data.trial,    -m);
   m             = cellmean(refdata.trial,    2);
   refdata.trial = cellvecadd(refdata.trial, -m);
-
-  % compute std of data before the regression
-  stdpre = cellstd(data.trial, 2);
 
   if computeweights
 
@@ -263,9 +259,6 @@ else
 
   end
 
-  % compute std of data after
-  stdpst = cellstd(data.trial, 2);
-
   % demean FIXME is this needed
   m          = cellmean(data.trial, 2);
   data.trial = cellvecadd(data.trial, -m);
@@ -324,7 +317,6 @@ end % if pertrial
 
 % do the general cleanup and bookkeeping at the end of the function
 ft_postamble debug
-ft_postamble trackconfig
 ft_postamble previous   varargin
 ft_postamble provenance data
 ft_postamble history    data
