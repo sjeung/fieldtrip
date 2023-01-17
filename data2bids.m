@@ -1801,8 +1801,7 @@ switch cfg.method
             cfg.outputfile = fullfile(p, [f '.vhdr']);
 
             ft_info('writing ''%s''\n', cfg.outputfile);
-           % ft_write_data(cfg.outputfile, dat, 'dataformat', 'brainvision_eeg', 'header', hdr, 'event', trigger);
-           ft_write_data(cfg.outputfile, [], 'dataformat', 'brainvision_eeg', 'header', hdr, 'event', trigger);
+            ft_write_data(cfg.outputfile, dat, 'dataformat', 'brainvision_eeg', 'header', hdr, 'event', trigger);
             
          case {'nirs'}
             % write the data in SNIRF file format
